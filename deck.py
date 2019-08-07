@@ -1,6 +1,6 @@
-import cards
+from card import Card
 import random
-from operator import attrgetter
+# from operator import attrgetter
 
 
 class Deck():
@@ -13,7 +13,7 @@ class Deck():
         suits = ['s', 'h', 'd', 'c']
         numbers = ['A', 'K', 'Q', 'J', 'T', '9',
                    '8', '7', '6', '5', '4', '3', '2']
-        self.cards = [cards.Card(n, s) for n in numbers for s in suits]
+        self.cards = [Card(n, s) for n in numbers for s in suits]
 
     @property
     def shuffleCards(self):
@@ -23,7 +23,7 @@ class Deck():
     def printCards(self):
         for card in self.cards:
             print(card, end=" ")
-        print()
+        print("")
 
     @property
     def sortCards(self):
@@ -33,30 +33,28 @@ class Deck():
                          (order.index(Card.num), order2.index(Card.suit)))
         self.cards = s_cards
 
+    @property
+    def removeCard(self):
+        if len(self.cards) > 0:
+            return self.cards.pop()
+
 
 class Hand(Deck):
 
     def __init__(self):
-        # handFolded = True
+        self.handFolded = False
         self.cards = []
         self.deck = Deck
+        self.owner = ''
 
     def addHand(self, Deck):
         self.cards = []
 
-    def addCards(self):
-        pass
-
-
-def main():
-    myDeck = Deck()
-    print(len(myDeck.cards))
-    myDeck.printCards
-    myDeck.shuffleCards
-    myDeck.printCards
-    myDeck.sortCards
-    myDeck.printCards
-
-
-if __name__ == "__main__":
-    main()
+    # @property
+    def dealSingleCard(self, Deck):
+        if not self.handFolded:
+            card = Deck.removeCard
+            if card:
+                self.cards.append(card)
+            else:
+                print("no cards in deck to deal")

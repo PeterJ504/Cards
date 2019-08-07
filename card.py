@@ -11,6 +11,10 @@ class Card():
         return "{}{}".format(self.num, self.suit)
 
     @property
+    def short(self):
+        return "{}{}".format(self.num, self.suit)
+
+    @property
     def long(self):
         return "{} of {}".format(self.numLong, self.suitLong)
 

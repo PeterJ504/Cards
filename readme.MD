@@ -1,3 +1,10 @@
 # Cards
 
-This is my attempt to practice my newly acquired skills in Python and OOP to write a simple card playing program. It's in the beginning stages and definitely not complete yet.
+Another simple project aimed at practicing using Python and OOP.
+
+This is simple poker program. It currently deals random 5 card hands and then ranks them according to standard poker rules.
+
+Future plans:
+
+- Deal more than 5 cards - e.g. Stud
+- Incorporate community cards to play Texas Hold 'em and Omaha.

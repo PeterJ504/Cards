@@ -7,9 +7,8 @@ import logging
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: %(message)s',
-    datefmt='%Y%m%d %H:%M:%S',
-)
+    format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: '
+    '%(message)s', datefmt='%Y%m%d %H:%M:%S',)
 
 
 class Deck():
@@ -31,11 +30,14 @@ class Deck():
     def shuffleCards(self):
         return random.shuffle(self.cards)
 
-    @property
-    def printCards(self):
-        for card in self.cards:
-            print(card, end=" ")
-        print(f" - {self.handName:<14} - {self.value:>7}")
+    # @property
+    # def printCards(self):
+    #     for n, card in enumerate(self.cards):
+    #         print(card, end=" ")
+    #     if n < 5:
+    #         for _ in range(5-n):
+    #             print("  ", end=" ")
+    #     print(f" - {self.handName:<14} - {self.value:>7}")
 
     @property
     def sortCards(self):
@@ -70,8 +72,8 @@ class Hand(Deck):
         self.deck = Deck
         self.parent = parentDeck
         self.owner = ''
-        self.ordinal = 0
-        self.tblPosition = 0
+        self.seat = 0
+        self.handPosition = 0
         self.value = 0
         self.handName = ''
         parentDeck.activeHands += 1
@@ -83,17 +85,26 @@ class Hand(Deck):
         return isinstance(other, Hand) and self.value > other.value
 
     @property
+    def printCards(self):
+        for n, card in enumerate(self.cards):
+            print(card, end=" ")
+        if n < 5:
+            for _ in range(5-n):
+                print("  ", end=" ")
+        print(f" - {self.handName:<14} - {self.value:>7}")
+
+    @property
     def foldHand(self):
         self.handFolded = True
         self.parent.activeHands -= 1
 
     def createHandsFromList(self, parentDeck, players):
         hands = []
-        for n, i in enumerate(players):
+        for n, _ in enumerate(players):
             hands.append(Hand(parentDeck))
             hands[n].owner = players[n]
-            hands[n].ordinal = n+1
-            hands[n].tblPosition = n+1
+            hands[n].seat = n+1
+            hands[n].handPosition = n+1
         return hands
 
     @property
@@ -128,7 +139,7 @@ class Hand(Deck):
             if not handList[k].handFolded:
                 break
         # Make sure there are enough cards left and then deal them
-        for i in range(numCards):
+        for _ in range(numCards):
             if len(handList[k].parent.cards) >= handList[k].parent.activeHands:
                 for j in range(len(handList)):
                     handList[j].dealSingleCard
@@ -173,10 +184,10 @@ class Hand(Deck):
                 currentHandName = '3 of a Kind'
         elif 2 in numCtr.values():
             if len(self.cards)-2 == len(numCtr):
-                currentValue = 3000000
+                currentValue = 2000000
                 currentHandName = '2 Pairs'
             else:
-                currentValue = 2000000
+                currentValue = 1000000
                 currentHandName = '1 Pair'
 
         # Flush
@@ -212,9 +223,9 @@ class Hand(Deck):
         # Check for remaining non ranked cards
         if not straight and currentHandName != 'Full House':
             used = 0
-            if currentValue < 2000000:
+            if currentValue < 1000000:
                 currentHandName = 'No Pair'
-            for n, i in enumerate(self.cards):
+            for _, i in enumerate(self.cards):
                 if numCtr[i.num] != 1:
                     position = Hand.order.find(i.num)
                     value = 12**(4-used) * position
@@ -222,7 +233,7 @@ class Hand(Deck):
                     #     f"{i.num} = {position} = {n} = {4-used} = {value}")
                     currentValue += value
                     used += 1
-            for n, i in enumerate(self.cards):
+            for _, i in enumerate(self.cards):
                 if numCtr[i.num] == 1:
                     position = Hand.order.find(i.num)
                     value = 12**(4-used) * position

@@ -1,4 +1,13 @@
+import logging
+
+
 class Card():
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(levelname)8s:%(lineno)4s:%(filename)15s: %(message)s',
+        datefmt='%Y%m%d %H:%M:%S',
+    )
 
     def __init__(self, num, suit):
         self._num = num
@@ -9,6 +18,9 @@ class Card():
 
     def __str__(self):
         return "{}{}".format(self.num, self.suit)
+
+    def __eq__(self, other):
+        return isinstance(other, Card) and other.num == self.num and other.suit == self.suit
 
     @property
     def short(self):

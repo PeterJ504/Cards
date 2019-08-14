@@ -30,15 +30,6 @@ class Deck():
     def shuffleCards(self):
         return random.shuffle(self.cards)
 
-    # @property
-    # def printCards(self):
-    #     for n, card in enumerate(self.cards):
-    #         print(card, end=" ")
-    #     if n < 5:
-    #         for _ in range(5-n):
-    #             print("  ", end=" ")
-    #     print(f" - {self.handName:<14} - {self.value:>7}")
-
     @property
     def sortCards(self):
         s_cards = sorted(self.cards, key=lambda Card:
@@ -113,8 +104,7 @@ class Hand(Deck):
             card = self.parent.removeCard
             if card:
                 self.cards.append(card)
-                if len(self.cards) > 4:
-                    self.calculateHandValues
+                self.calculateHandValue
             else:
                 print("no cards in deck to deal")
 
@@ -126,8 +116,7 @@ class Hand(Deck):
                 self.cards.append(card)
                 if len(self.cards) > 5:
                     logging.warning(f"Dealing {len(self.cards)} cards")
-                    pass
-                    # self.calculateHandValue
+        self.calculateHandValue
 
     def dealRound(self, handList, numCards):
         # Make sure there is at least 1 hands that has not folded

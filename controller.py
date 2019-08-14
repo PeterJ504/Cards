@@ -38,7 +38,7 @@ def main():
     # myHands[2].foldHand
     Hand.dealRound(Hand, myHands, 3)
 
-    Hand.calculateHandValues(Hand, myHands)
+    # Hand.calculateHandValues(Hand, myHands)
     myHands.sort(key=lambda x: x.value, reverse=True)
     printCurrentStandings(myHands, players)
 

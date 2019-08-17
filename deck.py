@@ -1,6 +1,8 @@
 from card import Card
 from collections import Counter
 from operator import attrgetter
+
+import itertools
 import random
 
 import logging
@@ -13,8 +15,13 @@ logging.basicConfig(
 
 class Deck():
 
-    order = "23456789TJQKA"
-    order2 = "cdhs"
+    order = "23456789TJQKA?"
+    order2 = "cdhs?"
+    dealtCards = "23456789TJQKA"
+    dealtSuits = "cdhs"
+    jokers = False
+    hasCommunityCards = False
+    # community = Hand(d1)
 
     def __init__(self):
         self.cards = []
@@ -22,9 +29,12 @@ class Deck():
         self.activeHands = 0
 
     def create(self):
-        numbers = list(self.order)
-        suits = list(self.order2)
+        numbers = list(self.dealtCards)
+        suits = list(self.dealtSuits)
         self.cards = [Card(n, s) for n in numbers for s in suits]
+        if self.jokers:
+            self.cards.append(Card("?", "?"))
+            self.cards.append(Card("?", "?"))
 
     @property
     def shuffleCards(self):
@@ -140,98 +150,112 @@ class Hand(Deck):
     @property
     def calculateHandValue(self):
         # High Card, 1-Pair, 2-2 Pairs, 3-Trips, 4-Straight, 5-Flush
-        # 6-Full house, 7-Quads, 8-Straight Flush 9-Royal Flush
+        # 6-Full house, 7-Quads, 8-Straight Flush 8.5-Royal Flush,
+        # 9-5 of a kind
+        # TODO: Implement jokers in rankings
+
         if self.handFolded:
             self.value = 0
             self.handName = 'Folded'
             return
 
-        straight = False
-        flush = False
-        currentHandName = ''
-        currentValue = 0
+        # self.sortCards
 
-        self.sortCards
-        numCtr = Counter(getattr(Card, 'num') for Card in self.cards)
-        suitCtr = Counter(getattr(Card, 'suit') for Card in self.cards)
-        # logging.debug(numCtr)
+        allCards = self.cards.copy()
+        allComboList = []
+        # if hasCommunityCards:
+        #     for i in community.cards:
+        #         allCards.append(i)
 
-        if 4 in numCtr.values():
-            currentValue = 7000000
-            currentHandName = '4 of a Kind'
-            # TODO: Check eval of last card
-        elif 3 in numCtr.values():
-            if 2 in numCtr.values():
-                value1 = list(numCtr.keys())[list(numCtr.values()).index(3)]
-                value2 = list(numCtr.keys())[list(numCtr.values()).index(2)]
-                position1 = Hand.order.find(value1)
-                position2 = Hand.order.find(value2)
-                currentValue = 6000000 + 12*position1 + position2
-                currentHandName = 'Full House'
-            else:
-                currentValue = 3000000
-                currentHandName = '3 of a Kind'
-        elif 2 in numCtr.values():
-            if len(self.cards)-2 == len(numCtr):
-                currentValue = 2000000
-                currentHandName = '2 Pairs'
-            else:
-                currentValue = 1000000
-                currentHandName = '1 Pair'
+        # Create all 5 card combinations
+        if len(allCards) > 5:
+            for i in list(itertools.combinations(allCards, 5)):
+                allComboList.append(list(i))
+        else:
+            allComboList.append(allCards)
 
-        # Flush
-        if len(suitCtr) == 1 and len(self.cards) == 5:
-            currentValue = 5000000
-            currentHandName = 'Flush'
-            flush = True
-            # TODO: check eval of cards
-
-        # Straight & straight flush
-        if len(numCtr) == 5:
-            # print(self.cards)
+        # Check each five card combination
+        for checkCards in allComboList:
             straight = False
-            minNum = min(Deck.order.index(x) for x in numCtr.keys())
-            maxNum = max(Deck.order.index(x) for x in numCtr.keys())
-            if int(maxNum)-int(minNum) == 4:
-                straight = True
-            else:
-                lowStraight = set(('A', '2', '3', '4', '5'))
-                if not set(numCtr.keys()).difference(lowStraight):
+            flush = False
+            currentHandName = ''
+            currentValue = 0
+            numCtr = Counter(getattr(Card, 'num') for Card in checkCards)
+            suitCtr = Counter(getattr(Card, 'suit') for Card in checkCards)
+
+            if 4 in numCtr.values():
+                currentValue = 7000000
+                currentHandName = '4 of a Kind'
+                # TODO: Check eval of last card
+            elif 3 in numCtr.values():
+                if 2 in numCtr.values():
+                    value1 = list(numCtr.keys())[
+                        list(numCtr.values()).index(3)]
+                    value2 = list(numCtr.keys())[
+                        list(numCtr.values()).index(2)]
+                    position1 = Hand.order.find(value1)
+                    position2 = Hand.order.find(value2)
+                    currentValue = 6000000 + 12*position1 + position2
+                    currentHandName = 'Full House'
+                else:
+                    currentValue = 3000000
+                    currentHandName = '3 of a Kind'
+            elif 2 in numCtr.values():
+                if len(checkCards)-2 == len(numCtr):
+                    currentValue = 2000000
+                    currentHandName = '2 Pairs'
+                else:
+                    currentValue = 1000000
+                    currentHandName = '1 Pair'
+
+            # Flush
+            if len(suitCtr) == 1 and len(checkCards) == 5:
+                currentValue = 5000000
+                currentHandName = 'Flush'
+                flush = True
+                # TODO: check eval of cards
+
+            # Straight & straight flush
+            if len(numCtr) == 5:
+                straight = False
+                minNum = min(Deck.order.index(x) for x in numCtr.keys())
+                maxNum = max(Deck.order.index(x) for x in numCtr.keys())
+                if int(maxNum)-int(minNum) == 4:
                     straight = True
-            if straight and flush:
-                currentValue = 8000000 + minNum
-                currentHandName = 'Straight Flush'
-                royal = set(('T', 'J', 'Q', 'K', 'A'))
-                if not set(numCtr.keys()).difference(royal):
-                    currentValue = 9000000
-                    currentHandName = 'Royal Flush'
-            elif straight:
-                currentValue = 4000000 + minNum
-                currentHandName = 'Straight'
+                else:
+                    lowStraight = set(('A', '2', '3', '4', '5'))
+                    if not set(numCtr.keys()).difference(lowStraight):
+                        straight = True
+                if straight and flush:
+                    currentValue = 8000000 + minNum
+                    currentHandName = 'Straight Flush'
+                    royal = set(('T', 'J', 'Q', 'K', 'A'))
+                    if not set(numCtr.keys()).difference(royal):
+                        currentValue = 8500000
+                        currentHandName = 'Royal Flush'
+                elif straight:
+                    currentValue = 4000000 + minNum
+                    currentHandName = 'Straight'
 
-        # Check for remaining non ranked cards
-        if not straight and currentHandName != 'Full House':
-            used = 0
-            if currentValue < 1000000:
-                currentHandName = 'No Pair'
-            for _, i in enumerate(self.cards):
-                if numCtr[i.num] != 1:
-                    position = Hand.order.find(i.num)
-                    value = 12**(4-used) * position
-                    # logging.debug(
-                    #     f"{i.num} = {position} = {n} = {4-used} = {value}")
-                    currentValue += value
-                    used += 1
-            for _, i in enumerate(self.cards):
-                if numCtr[i.num] == 1:
-                    position = Hand.order.find(i.num)
-                    value = 12**(4-used) * position
-                    # logging.debug(
-                    #     f"{i.num} = {position} = {n} = {4-used}= {value}")
-                    currentValue += value
-                    used += 1
+            # Check for remaining non ranked cards
+            if not straight and currentHandName != 'Full House':
+                used = 0
+                if currentValue < 1000000:
+                    currentHandName = 'No Pair'
+                for _, i in enumerate(checkCards):
+                    if numCtr[i.num] != 1:
+                        position = Hand.order.find(i.num)
+                        value = 12**(4-used) * position
+                        currentValue += value
+                        used += 1
+                for _, i in enumerate(checkCards):
+                    if numCtr[i.num] == 1:
+                        position = Hand.order.find(i.num)
+                        value = 12**(4-used) * position
+                        currentValue += value
+                        used += 1
 
-        # Check if hand highest so far
-        if currentValue >= self.value:
-            self.value = currentValue
-            self.handName = currentHandName
+            # Check if hand highest so far
+            if currentValue >= self.value:
+                self.value = currentValue
+                self.handName = currentHandName

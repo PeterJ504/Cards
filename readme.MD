@@ -6,5 +6,5 @@ This is simple poker program. It currently deals random 5 card hands and then ra
 
 Future plans:
 
-- Deal more than 5 cards - e.g. Stud
-- Incorporate community cards to play Texas Hold 'em and Omaha.
+- Deal more than 5 cards - e.g. Stud - Done
+- Incorporate community cards to deal Texas Hold 'em and Omaha.

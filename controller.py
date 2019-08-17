@@ -13,8 +13,8 @@ logging.basicConfig(
 
 def printCurrentStandings(myHands, players):
     maxNameLen = max([len(i) for i in players])
-    print("Rnk Seat {msg1:<{width}} Cards             Hand"
-          "               Score".format(msg1="Name", width=maxNameLen+2))
+    print("Rnk Seat {msg1:<{width}} Cards                   Hand"
+          "             Score".format(msg1="Name", width=maxNameLen+2))
     for n, _ in enumerate(players):
         # myHands[n].sortCards
         print(f"{n+1:>2}", end='   ')
@@ -31,12 +31,12 @@ def main():
     myDeck.shuffleCards
 
     players = ["Peter", "John", "David", "Ford", "Derrick",
-               "Darcy", "Jim", "Joyce", "Joanne", "Ruth"]
+               "Darcy", "Jim"]  # , "Joyce", "Joanne", "Ruth"]
     myHands = Hand.createHandsFromList(Hand, myDeck, players)
 
-    Hand.dealRound(Hand, myHands, 2)
-    # myHands[2].foldHand
     Hand.dealRound(Hand, myHands, 3)
+    # myHands[2].foldHand
+    Hand.dealRound(Hand, myHands, 4)
 
     # Hand.calculateHandValues(Hand, myHands)
     myHands.sort(key=lambda x: x.value, reverse=True)
@@ -56,6 +56,7 @@ def main():
     # Hand.calculateHandValues(Hand, myHands)
     # myHands.sort(key=lambda x: x.value, reverse=True)
     # printCurrentStandings(myHands, players)
+
 
     # print(myHands[2] > myHands[n])
     # Hand.printCards

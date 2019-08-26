@@ -2,6 +2,11 @@ import logging
 
 
 class Card():
+    """Playing cards
+
+    Returns:
+        [type] -- [description]
+    """
 
     logging.basicConfig(
         level=logging.DEBUG,

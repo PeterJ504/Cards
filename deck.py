@@ -1,3 +1,4 @@
+from game import Game
 from card import Card
 from collections import Counter
 from operator import attrgetter
@@ -19,11 +20,10 @@ class Deck():
     order2 = "cdhs?"
     dealtCards = "23456789TJQKA"
     dealtSuits = "cdhs"
-    jokers = False
-    hasCommunityCards = False
-    # community = Hand(d1)
 
-    def __init__(self):
+    def __init__(self, myGame):
+        self.hasCommunityCards = myGame.useCommunity
+        self.jokers = myGame.useJokers
         self.cards = []
         self.create()
         self.activeHands = 0
@@ -87,12 +87,18 @@ class Hand(Deck):
 
     @property
     def printCards(self):
-        for n, card in enumerate(self.cards):
-            print(card, end=" ")
-        if n < 5:
-            for _ in range(5-n):
-                print("  ", end=" ")
-        print(f" - {self.handName:<14} - {self.value:>7}")
+        if len(self.cards) > 0:
+            for n, card in enumerate(self.cards):
+                print(card, end=" ")
+            if n < 6:
+                for _ in range(6-n):
+                    print("  ", end=" ")
+            if self.value == 0:
+                print(f"  {self.handName:<14}")
+            else:
+                print(f"  {self.handName:<14}   {self.value:>7}")
+        else:
+            print()
 
     @property
     def foldHand(self):
@@ -114,7 +120,7 @@ class Hand(Deck):
             card = self.parent.removeCard
             if card:
                 self.cards.append(card)
-                self.calculateHandValue
+                # self.calculateHandValue
             else:
                 print("no cards in deck to deal")
 
@@ -126,7 +132,7 @@ class Hand(Deck):
                 self.cards.append(card)
                 if len(self.cards) > 5:
                     logging.warning(f"Dealing {len(self.cards)} cards")
-        self.calculateHandValue
+        # self.calculateHandValue
 
     def dealRound(self, handList, numCards):
         # Make sure there is at least 1 hands that has not folded
@@ -142,13 +148,20 @@ class Hand(Deck):
             if len(handList[k].parent.cards) >= handList[k].parent.activeHands:
                 for j in range(len(handList)):
                     handList[j].dealSingleCard
+        # self.calculateHandValues(handList[j], community)
 
-    def calculateHandValues(self, handList):
+    def calculateHandValues(self, handList, community, game):
         for h1 in handList:
-            h1.calculateHandValue
+            Hand.calculateHandValue(h1, community, game)
 
-    @property
-    def calculateHandValue(self):
+    def dealCommunityCards(self, handList, community, numCards):
+        for _ in range(numCards):
+            community.dealSingleCard
+        # self.calculateHandValues(handList, community)
+
+    # @property
+    def calculateHandValue(self, community, game):
+        # logging.debug(f" Hand Value {self.cards}, {community.cards}")
         # High Card, 1-Pair, 2-2 Pairs, 3-Trips, 4-Straight, 5-Flush
         # 6-Full house, 7-Quads, 8-Straight Flush 8.5-Royal Flush,
         # 9-5 of a kind
@@ -160,19 +173,42 @@ class Hand(Deck):
             return
 
         # self.sortCards
+        # -----------------------------------------------------------
+        # allCards = self.cards.copy()
+        # allComboList = []
+        # # if hasCommunityCards:
+        # #     for i in community.cards:
+        # #         allCards.append(i)
 
-        allCards = self.cards.copy()
-        allComboList = []
-        # if hasCommunityCards:
-        #     for i in community.cards:
-        #         allCards.append(i)
-
+        # # Create all 5 card combinations
+        # if len(allCards) > 5:
+        #     for i in list(itertools.combinations(allCards, 5)):
+        #         allComboList.append(list(i))
+        # else:
+        #     allComboList.append(allCards)
+        # -----------------------------------------------------------
         # Create all 5 card combinations
-        if len(allCards) > 5:
-            for i in list(itertools.combinations(allCards, 5)):
-                allComboList.append(list(i))
+        allComboList = []
+        if game.useCommunity:
+            for i in range(game.minHandToScore, game.maxHandToScore+1):
+                if i == 0:
+                    for k in list(itertools.combinations(community.cards, 5)):
+                        allComboList.append(list(k))
+                else:
+                    for j in list(itertools.combinations(self.cards, i)):
+                        x = list(j)
+                        if len(community.cards) > 0:
+                            for k in list(itertools.combinations(community.cards, 5-i)):
+                                allComboList.append(list(j)+list(k))
+                        else:
+                            allComboList.append(list(j))
         else:
-            allComboList.append(allCards)
+            if len(self.cards) <= 5:
+                allComboList.append(self.cards)
+            else:
+                for i in list(itertools.combinations(self.cards, 5)):
+                    allComboList.append(list(i))
+        # -----------------------------------------------------------
 
         # Check each five card combination
         for checkCards in allComboList:
